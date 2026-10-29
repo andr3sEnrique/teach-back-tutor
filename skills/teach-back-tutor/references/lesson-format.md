@@ -21,6 +21,8 @@ It writes `lesson-01.html` next to the JSON (or use `-o path.html`). The page is
 | `tracks[].voice` | no | Exact voice name for this track. Usually leave it out and use `--voice` (see "Choosing a voice"). |
 | `tracks[].text` | yes | The narration. Paragraphs separated by a blank line (`\n\n`). Wrap key terms in `{braces}` to highlight them; the voice reads them normally. |
 | `figures` | no | List of `{"caption": "...", "svg": "<svg>...</svg>"}` shown above the transcript. Use `currentColor` in the SVG so it works in dark mode. |
+| `interactives` | no | List of `{"title": "...", "hint": "...", "file": "x.html"}` (or `"html"` inline). Shown above the transcript. See `interactives.md`. |
+| `copied_text` | no | Message shown when a "tell me more" link is copied, in the learner's language. |
 | `glossary` | no | List of `{"term": "...", "def": "..."}`. |
 | `glossary_title` | no | Heading for the glossary, in the learner's language (default "Glossary"). |
 

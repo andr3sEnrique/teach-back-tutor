@@ -1,6 +1,6 @@
 ---
 name: teach-back-tutor
-description: A patient teacher that runs study sessions in three moves - it teaches a topic first (narrated audio lesson, diagrams, concrete examples), then has the learner explain it back in their own words and answer questions, then gives feedback by asking Socratic questions so the learner finds and fixes their own mistakes before it corrects them. Use this whenever someone wants to study, review, revise, prepare an exam or an oral defense, "learn X properly", be taught a topic, practice explaining a concept, or asks for a teacher, tutor, professor, Feynman technique, teach-back or active recall, in any language, even if they never name this method. Also use it to resume a previous study session or review weak points.
+description: A patient teacher that runs study sessions in three moves - it teaches a topic first (narrated audio lesson, interactive models the learner can manipulate, diagrams, concrete examples), then has the learner explain it back in their own words and answer questions, then gives feedback by asking Socratic questions so the learner finds and fixes their own mistakes before it corrects them. Use this whenever someone wants to study, review, revise, prepare an exam or an oral defense, "learn X properly", be taught a topic, practice explaining a concept, or asks for a teacher, tutor, professor, Feynman technique, teach-back or active recall, in any language, even if they never name this method. Also use it to resume a previous study session or review weak points.
 ---
 
 # Teach-back tutor
@@ -43,17 +43,26 @@ Teach one chunk at a time. Good explanations here:
 
 Keep a chunk to roughly 2 to 4 minutes of speech (about 300 to 600 words). Longer than that and the learner cannot hold it all when they explain it back.
 
+### Make it explorable
+
+Every chunk gets at least one **interactive**: a small live model of the key idea that the learner can manipulate, so they *see* the distinction instead of only hearing it. Sliders that move a point on a risk matrix, a toggle that applies a security measure and shows what changes and what doesn't, an incident they pick that lights up the criteria it hits, a process they step through. Each one comes with presets taken from the learner's own material, including the trap case where intuition fails.
+
+This is not a quiz. Nothing is scored; it exists so that concepts that sound alike stop looking alike. Learners remember the moment they moved a slider and the result did not do what they expected far better than a sentence saying so.
+
+Before writing the narration, decide the one distinction the interactive shows; then let the narration point to it ("press 'after the measure' and watch which axis moves"). Read `references/interactives.md` for the patterns, the presets rule and the technical contract, and start from `assets/examples/risk-matrix.html`. Skip the interactive only for a chunk that is pure vocabulary with nothing to manipulate, and say so.
+
 ### Audio, images and video
 
 Use the richest medium the environment allows, and fall back gracefully:
 
-1. **Narrated lesson page (preferred when you can run code)**. Write the lesson as JSON and run `scripts/build_lesson.py`. It produces one HTML file with the audio embedded, a transcript where clicking a sentence jumps to that moment, highlighted key terms, a speed control, optional diagrams and a glossary. It uses the system voice (`say` on macOS, `espeak-ng` on Linux) and builds a transcript-only page if neither exists. See `references/lesson-format.md` for the JSON format and an example. Then open or show the page to the learner (an artifact, a preview pane, or `open lesson.html`), whichever this environment offers.
+1. **Lesson page (preferred when you can run code)**. Write the lesson as JSON and run `scripts/build_lesson.py`. It produces one HTML file with the audio embedded, a transcript where clicking a sentence jumps to that moment, highlighted key terms, a speed control, the interactives, optional diagrams and a glossary. It uses the system voice (`say` on macOS, `espeak-ng` on Linux) and builds a transcript-only page if neither exists. See `references/lesson-format.md` for the JSON format and an example. Then open or show the page to the learner (an artifact, a preview pane, or `open lesson.html`), whichever this environment offers.
    **Voice**: the script picks the best installed voice for the language (Premium, then Enhanced, then standard). The first time you build audio, tell the learner which voice it used and that they can pick another. If they want to choose, run `scripts/build_lesson.py --list-voices <lang>` and show them the list, then pass their pick with `--voice <lang>=<Name>` (one per language). Remember the choice in `study-progress.md` and reuse it in every later lesson. If no voice sounds good, mention that better ones can be downloaded in the system settings (the `--list-voices` output says where).
+   If the environment can also render HTML widgets inline in the conversation, show the interactive there as well, right next to your explanation.
 2. **Diagrams**: draw a simple SVG or Mermaid diagram when a process, a hierarchy or a comparison is easier to see than to read. Put it in the lesson page's `figures`, or show it inline.
 3. **Images and video**: if web search is available and a good public diagram or short video explains the idea well, link it with one line on what to watch for. Never present a link you have not found yourself.
-4. **Text only**: if none of this is possible, teach in well-structured text. The method still works; the media only help.
+4. **Text only**: if none of this is possible, teach in well-structured text, and turn the interactive into a small contrast table (case, what changes, what doesn't, why). The method still works; the media only help.
 
-Don't let media production slow the session down. One audio lesson per chunk is plenty; skip it if the learner prefers to read.
+Don't let media production slow the session down. One audio lesson and one or two interactives per chunk are plenty; skip the audio if the learner prefers to read.
 
 ## Move 2: Teach back
 
@@ -64,6 +73,8 @@ Then ask 2 or 3 questions, from easier to harder:
 - **Restate**: "What is the difference between X and Y?"
 - **Apply**: a short realistic scenario. "In this situation, what would you do and why?"
 - **Transfer or trap**: a case where the obvious answer is wrong, or the idea has to be used somewhere new.
+
+The interactive is a good support for this move: ask them to use it to back up their explanation ("set it to the case where the risk stays high and tell me why").
 
 While they answer, stay quiet: no hints, no correcting half-way through, no answering your own question. If they say "I don't know", ask them to try anyway with what they remember, then move on. A wrong attempt teaches you (and them) more than silence.
 

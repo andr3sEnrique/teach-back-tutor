@@ -2,7 +2,7 @@
 
 A skill for Claude Code, Claude.ai and other agents that read `SKILL.md` (Codex, Cursor, etc.). It turns the agent into a teacher who runs real study sessions:
 
-1. **Teach**: explains a chunk of the topic, with a narrated audio lesson (synced transcript, highlighted key terms, glossary), diagrams and concrete examples.
+1. **Teach**: explains a chunk of the topic, with a narrated audio lesson (synced transcript, highlighted key terms, glossary), **interactive models you can manipulate** (sliders, before/after toggles, step-through processes, with presets from your own material) so you see the difference between concepts, plus diagrams and concrete examples.
 2. **Teach back**: you explain it in your own words and answer 2 or 3 questions (restate, apply, trap).
 3. **Feedback**: it asks Socratic questions so you find your own mistakes first, then corrects what is still wrong and says why.
 
@@ -14,6 +14,12 @@ With the [skills CLI](https://github.com/vercel-labs/skills) (Claude Code, Codex
 
 ```bash
 npx skills add andr3sEnrique/teach-back-tutor
+```
+
+In the agent list, make sure your agent is selected (for Claude Code, tick **Claude Code**), or name it directly:
+
+```bash
+npx skills add andr3sEnrique/teach-back-tutor -g -a claude-code
 ```
 
 As a Claude Code plugin:
@@ -56,4 +62,4 @@ MIT
 
 ---
 
-**ES:** Skill de "profesor": primero explica (audio, diagramas, ejemplos), luego tú le explicas lo que entendiste y respondes preguntas, y al final te hace preguntas para que encuentres tus propios errores antes de corregirte. Responde en el idioma en que le escribas.
+**ES:** Skill de "profesor": primero explica (audio, modelos interactivos que puedes mover, diagramas, ejemplos), luego tú le explicas lo que entendiste y respondes preguntas, y al final te hace preguntas para que encuentres tus propios errores antes de corregirte. Responde en el idioma en que le escribas.

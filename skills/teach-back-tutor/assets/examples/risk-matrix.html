@@ -1,0 +1,51 @@
+<!-- Example interactive: likelihood x severity risk matrix with real-case presets.
+     Pattern: model with sliders + presets. Labels are in the exam language (French), as in the
+     learner's case; write yours in the learner's language, key terms in the exam language. -->
+<style>
+.rm-ctl{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut);margin:6px 0}
+.rm-ctl span{min-width:100px}.rm-ctl b{font-weight:600;color:var(--tx);min-width:120px}
+.rm-mx{display:grid;grid-template-columns:96px repeat(4,minmax(0,1fr));gap:4px;margin:14px 0}
+.rm-mx div{font-size:12px;text-align:center;padding:8px 2px;border-radius:6px}
+.rm-hd{color:var(--mut)}.rm-on{outline:2px solid var(--tx)}
+.rm-out{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.rm-lvl{font-size:20px;font-weight:600}.rm-sc{font-size:13px;color:var(--mut)}
+.rm-pre{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.rm-pre button{font-size:13px}
+.rm-note{font-size:14px;margin:10px 0 0;min-height:2.6em}
+</style>
+<div class="rm-ctl"><span>Vraisemblance</span><input type="range" min="1" max="4" step="1" value="4" data-k="v"><b data-k="vl"></b></div>
+<div class="rm-ctl"><span>Gravité</span><input type="range" min="1" max="4" step="1" value="4" data-k="g"><b data-k="gl"></b></div>
+<div class="rm-mx" data-k="mx"></div>
+<div class="rm-out"><span class="rm-sc">Niveau de risque</span><span class="rm-lvl" data-k="lvl"></span><span class="rm-sc" data-k="sc"></span></div>
+<div class="rm-pre" data-k="pre"></div>
+<p class="rm-note" data-k="note"></p>
+<script>
+(() => {
+  const R = document.currentScript.parentElement, $ = k => R.querySelector(`[data-k="${k}"]`);
+  const VL = ['', 'Minime', 'Significative', 'Forte', 'Maximale'], GL = ['', 'Mineure', 'Significative', 'Grave', 'Critique'];
+  const PRESETS = [
+    ['Pompes : avant mesure', 4, 4, "Mot de passe d'usine connu publiquement et accès distant : vraisemblance maximale. Un patient en danger : gravité critique."],
+    ['Après changement du mdp', 1, 4, "La mesure baisse la vraisemblance, pas la gravité : si l'attaque réussit quand même, l'impact reste critique. Ce qui reste, c'est le risque résiduel."],
+    ['Wi-Fi invités ouvert', 3, 2, "Wi-Fi isolé du réseau médical : facile à attaquer, mais peu d'impact. Le même Wi-Fi non isolé changerait la gravité, pas la vraisemblance."]
+  ];
+  const lv = s => s >= 12 ? ['Critique', 'var(--crit)', 'var(--oncrit)'] : s >= 8 ? ['Élevé', 'var(--badbg)', 'var(--bad)']
+    : s >= 4 ? ['Moyen', 'var(--warnbg)', 'var(--warn)'] : ['Faible', 'var(--okbg)', 'var(--ok)'];
+  const v = $('v'), g = $('g');
+  function draw() {
+    const V = +v.value, G = +g.value;
+    $('vl').textContent = V + ' · ' + VL[V]; $('gl').textContent = G + ' · ' + GL[G];
+    let h = '<div class="rm-hd"></div>';
+    for (let x = 1; x <= 4; x++) h += `<div class="rm-hd">V${x}</div>`;
+    for (let y = 4; y >= 1; y--) {
+      h += `<div class="rm-hd" style="text-align:right">G${y} ${GL[y]}</div>`;
+      for (let x = 1; x <= 4; x++) { const l = lv(x * y); h += `<div class="${x === V && y === G ? 'rm-on' : ''}" style="background:${l[1]};color:${l[2]}">${x * y}</div>`; }
+    }
+    $('mx').innerHTML = h;
+    const l = lv(V * G); $('lvl').textContent = l[0]; $('lvl').style.color = l[0] === 'Critique' ? 'var(--crit)' : l[2];
+    $('sc').textContent = `V${V} × G${G} = ${V * G}`;
+  }
+  function set(p) { v.value = p[1]; g.value = p[2]; $('note').textContent = p[3]; draw(); }
+  PRESETS.forEach(p => { const b = document.createElement('button'); b.textContent = p[0]; b.onclick = () => set(p); $('pre').appendChild(b); });
+  v.oninput = g.oninput = () => { $('note').textContent = ''; draw(); };
+  set(PRESETS[0]);
+})();
+</script>
