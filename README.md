@@ -6,6 +6,8 @@ A skill for Claude Code, Claude.ai and other agents that read `SKILL.md` (Codex,
 2. **Teach back**: you explain it in your own words and answer 2 or 3 questions (restate, apply, trap).
 3. **Feedback**: it asks Socratic questions so you find your own mistakes first, then corrects what is still wrong and says why.
 
+<p align="center"><img src="docs/lesson-page.jpg" alt="A generated lesson page: narrated audio with speed control, a risk matrix the learner moves with sliders and real-case presets, a synced transcript with highlighted exam terms, and a glossary" width="640"></p>
+
 It works in any language: it answers in the language you write in. If you study in one language for an exam in another, it keeps the key terms in the exam language, with a glossary. It can keep a `study-progress.md` file so the next session starts by reviewing your weak points.
 
 ## Install
