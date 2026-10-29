@@ -39,6 +39,17 @@ Just ask to study something, in your own words:
 
 `scripts/build_lesson.py` builds one self-contained HTML page per lesson, with the audio embedded. It needs Python 3 and a system voice: `say` on macOS (built in) or `espeak-ng` on Linux. Without a voice it builds a transcript-only page and the method works the same. See `skills/teach-back-tutor/references/lesson-format.md`.
 
+### Choosing the voice
+
+By default it uses the best voice installed for the language (Premium > Enhanced > standard). To pick another one, just tell the tutor ("use another voice", "list the voices"): it shows the installed voices and remembers your choice. Or set it yourself:
+
+```bash
+python3 skills/teach-back-tutor/scripts/build_lesson.py --list-voices es
+export TEACH_BACK_VOICE="es=Paulina,fr=Thomas"   # lasting default
+```
+
+On macOS, nicer voices can be downloaded in System Settings > Accessibility > Spoken Content > System voice > Manage Voices.
+
 ## License
 
 MIT

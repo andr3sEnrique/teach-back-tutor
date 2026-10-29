@@ -18,11 +18,31 @@ It writes `lesson-01.html` next to the JSON (or use `-o path.html`). The page is
 | `tracks[].id` | yes | Short id, e.g. `"es"`, `"fr"`. |
 | `tracks[].label` | no | Tab text, e.g. `"Español + términos FR"`. |
 | `tracks[].lang` | yes | Language code (`es`, `fr`, `en`, `pt-BR`...). Picks the voice. |
-| `tracks[].voice` | no | Exact voice name to force one (macOS: `say -v '?'` lists them). |
+| `tracks[].voice` | no | Exact voice name for this track. Usually leave it out and use `--voice` (see "Choosing a voice"). |
 | `tracks[].text` | yes | The narration. Paragraphs separated by a blank line (`\n\n`). Wrap key terms in `{braces}` to highlight them; the voice reads them normally. |
 | `figures` | no | List of `{"caption": "...", "svg": "<svg>...</svg>"}` shown above the transcript. Use `currentColor` in the SVG so it works in dark mode. |
 | `glossary` | no | List of `{"term": "...", "def": "..."}`. |
 | `glossary_title` | no | Heading for the glossary, in the learner's language (default "Glossary"). |
+
+## Choosing a voice
+
+Without any setting, the script picks the best installed voice for each track's `lang`: Premium, then Enhanced, then standard voices, and the main region for a bare code (`fr` -> France, `en` -> US). It prints the voice used for each track.
+
+```bash
+# voices installed for a language, best first
+python3 build_lesson.py --list-voices es
+
+# one voice for every track, or one per language
+python3 build_lesson.py lesson.json --voice Paulina
+python3 build_lesson.py lesson.json --voice es=Paulina --voice fr=Thomas
+
+# a lasting default, e.g. in ~/.zshrc
+export TEACH_BACK_VOICE="es=Paulina,fr=Thomas"
+```
+
+Priority: `--voice`, then the track's `voice`, then `TEACH_BACK_VOICE`, then automatic. A voice that isn't installed gives a warning and falls back to automatic. Pass the language as `es-MX` or `fr-CA` to prefer a region.
+
+On macOS, better voices are downloaded in System Settings > Accessibility > Spoken Content > System voice > Manage Voices. On Linux, `--list-voices` shows the `espeak-ng` voices.
 
 ## Writing for the ear
 

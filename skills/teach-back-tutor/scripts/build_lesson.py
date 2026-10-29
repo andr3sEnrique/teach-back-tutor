@@ -22,6 +22,15 @@ highlighted on the page and read normally by the voice.
 
 Audio uses macOS `say` or `espeak-ng` when present. Without either, the page is
 built with the transcript only, so the lesson still works.
+
+Voice, from highest to lowest priority:
+    --voice NAME  or  --voice es=Paulina --voice fr=Thomas   (per language)
+    "voice" in the track
+    TEACH_BACK_VOICE env var, same syntax: "Paulina" or "es=Paulina,fr=Thomas"
+    automatic: the best installed voice for the language (Premium > Enhanced > standard)
+
+List the voices for a language, best first:
+    python3 build_lesson.py --list-voices es
 """
 import argparse
 import base64
@@ -42,6 +51,14 @@ PARAGRAPH_GAP = 0.6
 NOVELTY = {"Albert", "Bad News", "Bahh", "Bells", "Boing", "Bubbles", "Cellos", "Good News",
            "Jester", "Organ", "Superstar", "Trinoids", "Whisper", "Wobble", "Zarvox", "Junior",
            "Fred", "Kathy", "Ralph"}
+# macOS "Eloquence" voices: understandable but robotic, used only when nothing better exists
+ELOQUENCE = {"Eddy", "Flo", "Grandma", "Grandpa", "Reed", "Rocko", "Sandy", "Shelley"}
+# quality labels macOS appends to downloaded voices, in the system's language
+PREMIUM = ("premium",)
+ENHANCED = ("enhanced", "mejorada", "améliorée", "melhorada", "verbessert", "migliorata",
+            "verbeterd", "förbättrad", "forbedret", "parannettu", "ulepszony", "高品質", "高音质")
+# preferred region when only a bare language code ("en", "pt") is given; "fr" -> fr_FR etc. is implicit
+MAIN_LOCALES = {"en_US", "pt_BR", "zh_CN", "ja_JP", "ko_KR", "ar_001", "sv_SE", "da_DK", "nb_NO"}
 
 
 def split_sentences(paragraph):
@@ -49,23 +66,81 @@ def split_sentences(paragraph):
     return [p for p in parts if p.strip()]
 
 
-def pick_say_voice(lang):
+def installed_say_voices():
+    """All macOS voices as (name, locale) pairs."""
     try:
         out = subprocess.run(["say", "-v", "?"], capture_output=True, text=True, check=True).stdout
     except (OSError, subprocess.CalledProcessError):
-        return None
-    prefix = lang.lower().replace("-", "_")
+        return []
+    voices = []
     for line in out.splitlines():
-        m = re.match(r"^(.+?)\s+([a-z]{2,3}_[A-Z0-9]+)\s+#", line)
-        if not m:
+        m = re.match(r"^(.+?)\s+([a-z]{2,3}_[A-Za-z0-9]+)\s+#", line)
+        if m:
+            voices.append((m.group(1).strip(), m.group(2)))
+    return voices
+
+
+def say_voices(lang):
+    """Installed macOS voices for a language, best first, as (name, locale) pairs."""
+    want = lang.lower().replace("-", "_")
+    base_lang = want.split("_")[0]
+    ranked = []
+    for name, locale in installed_say_voices():
+        if locale.lower().split("_")[0] != base_lang:
             continue
-        name, locale = m.group(1).strip(), m.group(2)
         base = name.split(" (")[0]
         if base in NOVELTY:
             continue
-        if locale.lower() == prefix or locale.lower().startswith(prefix.split("_")[0] + "_"):
-            return name
-    return None
+        label = name.lower()
+        if any(k in label for k in PREMIUM):
+            score = 30
+        elif any(k in label for k in ENHANCED):
+            score = 20
+        elif base in ELOQUENCE:
+            score = 0
+        else:
+            score = 10
+        if locale.lower() == want:
+            score += 5
+        elif "_" not in want and locale in MAIN_LOCALES | {f"{base_lang}_{base_lang.upper()}"}:
+            score += 2
+        ranked.append((score, name, locale))
+    ranked.sort(key=lambda r: -r[0])
+    return [(name, locale) for _, name, locale in ranked]
+
+
+def parse_voice_prefs(values):
+    """'Paulina' or 'es=Paulina' items (also comma-separated) -> {lang or '*': voice}."""
+    prefs = {}
+    for value in values:
+        for item in filter(None, (v.strip() for v in value.split(","))):
+            lang, sep, voice = item.partition("=")
+            if sep:
+                prefs[lang.strip().lower()] = voice.strip()
+            else:
+                prefs["*"] = item
+    return prefs
+
+
+def pref_for(prefs, lang):
+    lang = lang.lower()
+    return prefs.get(lang) or prefs.get(lang.split("-")[0].split("_")[0]) or prefs.get("*")
+
+
+def resolve_voice(engine, track, cli_prefs, env_prefs):
+    lang = track.get("lang", "en")
+    requested = pref_for(cli_prefs, lang) or track.get("voice") or pref_for(env_prefs, lang)
+    if engine != "say":
+        return requested
+    if requested:
+        if requested in {name for name, _ in installed_say_voices()}:
+            return requested
+        print(f"warning: voice '{requested}' is not installed, choosing one for '{lang}'", file=sys.stderr)
+    best = say_voices(lang)
+    if not best:
+        print(f"warning: no macOS voice for '{lang}', using the system default", file=sys.stderr)
+        return None
+    return best[0][0]
 
 
 def tts_engine():
@@ -97,7 +172,7 @@ def silence(rate, seconds):
     return b"\x00\x00" * int(rate * seconds)
 
 
-def build_track(track, engine, tmp):
+def build_track(track, engine, voice, tmp):
     paragraphs = [p for p in re.split(r"\n\s*\n", track["text"].strip()) if p.strip()]
     segments = []
     for pi, para in enumerate(paragraphs):
@@ -111,10 +186,6 @@ def build_track(track, engine, tmp):
         return None, [{"p": s["p"], "t": None, "h": to_html(s["raw"])} for s in segments]
 
     lang = track.get("lang", "en")
-    voice = track.get("voice") or (pick_say_voice(lang) if engine == "say" else None)
-    if engine == "say" and not voice:
-        print(f"warning: no macOS voice for '{lang}', using the system default", file=sys.stderr)
-
     pcm, rate, t, out = [], None, 0.0, []
     prev_p = None
     for i, s in enumerate(segments):
@@ -213,10 +284,31 @@ load(Object.keys(T)[0]);
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("spec", help="lesson JSON file")
+    ap.add_argument("spec", nargs="?", help="lesson JSON file")
     ap.add_argument("-o", "--output", help="output HTML (default: next to the JSON)")
     ap.add_argument("--no-audio", action="store_true", help="skip speech synthesis")
+    ap.add_argument("--voice", action="append", default=[], metavar="[LANG=]NAME",
+                    help="voice to use, for all tracks or per language (repeatable)")
+    ap.add_argument("--list-voices", metavar="LANG", help="list installed voices for a language, best first")
     args = ap.parse_args()
+
+    if args.list_voices:
+        engine = tts_engine()
+        if engine == "say":
+            voices = say_voices(args.list_voices)
+            for i, (name, locale) in enumerate(voices):
+                print(f"{name}\t{locale}{'  <- default' if i == 0 else ''}")
+            if not voices:
+                print(f"no voice installed for '{args.list_voices}'")
+            print("More voices: System Settings > Accessibility > Spoken Content > System voice > "
+                  "Manage Voices (Premium and Enhanced sound best).")
+        elif engine == "espeak-ng":
+            subprocess.run(["espeak-ng", "--voices=" + args.list_voices])
+        else:
+            print("no TTS engine found (say / espeak-ng)")
+        return
+    if not args.spec:
+        ap.error("the lesson JSON file is required")
 
     with open(args.spec, encoding="utf-8") as f:
         spec = json.load(f)
@@ -228,10 +320,15 @@ def main():
     if not engine and not args.no_audio:
         print("warning: no TTS engine found (say / espeak-ng); building transcript-only page", file=sys.stderr)
 
+    cli_prefs = parse_voice_prefs(args.voice)
+    env_prefs = parse_voice_prefs([os.environ.get("TEACH_BACK_VOICE", "")])
     data = {}
     with tempfile.TemporaryDirectory() as tmp:
         for tr in tracks:
-            src, segs = build_track(tr, engine, tmp)
+            voice = resolve_voice(engine, tr, cli_prefs, env_prefs) if engine else None
+            if engine:
+                print(f"track '{tr['id']}': voice {voice or 'system default'}", file=sys.stderr)
+            src, segs = build_track(tr, engine, voice, tmp)
             data[tr["id"]] = {"src": src, "d": segs}
 
     esc = lambda s: html.escape(s or "", quote=True)

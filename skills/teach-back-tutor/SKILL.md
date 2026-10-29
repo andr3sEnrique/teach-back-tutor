@@ -48,6 +48,7 @@ Keep a chunk to roughly 2 to 4 minutes of speech (about 300 to 600 words). Longe
 Use the richest medium the environment allows, and fall back gracefully:
 
 1. **Narrated lesson page (preferred when you can run code)**. Write the lesson as JSON and run `scripts/build_lesson.py`. It produces one HTML file with the audio embedded, a transcript where clicking a sentence jumps to that moment, highlighted key terms, a speed control, optional diagrams and a glossary. It uses the system voice (`say` on macOS, `espeak-ng` on Linux) and builds a transcript-only page if neither exists. See `references/lesson-format.md` for the JSON format and an example. Then open or show the page to the learner (an artifact, a preview pane, or `open lesson.html`), whichever this environment offers.
+   **Voice**: the script picks the best installed voice for the language (Premium, then Enhanced, then standard). The first time you build audio, tell the learner which voice it used and that they can pick another. If they want to choose, run `scripts/build_lesson.py --list-voices <lang>` and show them the list, then pass their pick with `--voice <lang>=<Name>` (one per language). Remember the choice in `study-progress.md` and reuse it in every later lesson. If no voice sounds good, mention that better ones can be downloaded in the system settings (the `--list-voices` output says where).
 2. **Diagrams**: draw a simple SVG or Mermaid diagram when a process, a hierarchy or a comparison is easier to see than to read. Put it in the lesson page's `figures`, or show it inline.
 3. **Images and video**: if web search is available and a good public diagram or short video explains the idea well, link it with one line on what to watch for. Never present a link you have not found yourself.
 4. **Text only**: if none of this is possible, teach in well-structured text. The method still works; the media only help.
@@ -99,6 +100,7 @@ When you can write files, keep `study-progress.md` in the working folder so the 
 ```markdown
 # Study progress: <topic>
 Goal: <exam / oral / ...> on <date>. Language: <learner's language> (key terms in <exam language>, if any)
+Voice: <lang>=<Name>, <lang>=<Name> (only if the learner chose one)
 
 ## Plan
 1. <chunk> - done
