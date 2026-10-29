@@ -1,0 +1,7 @@
+{
+  "name": "teach-back-tutor",
+  "version": "1.0.0",
+  "description": "A teacher for study sessions: teaches first (audio lesson, diagrams), the learner explains back, then Socratic feedback and correction. Any language.",
+  "license": "MIT",
+  "keywords": ["study", "learning", "tutor", "feynman", "teach-back", "exam", "socratic"]
+}

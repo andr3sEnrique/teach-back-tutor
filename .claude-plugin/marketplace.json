@@ -1,0 +1,11 @@
+{
+  "name": "teach-back-tutor",
+  "owner": { "name": "andr3sEnrique" },
+  "plugins": [
+    {
+      "name": "teach-back-tutor",
+      "source": "./",
+      "description": "A teacher for study sessions: teaches first (audio lesson, diagrams), the learner explains back, then Socratic feedback and correction. Any language."
+    }
+  ]
+}
